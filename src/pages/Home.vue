@@ -70,19 +70,25 @@
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
-          class="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition"
+          class="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition flex flex-col"
         >
           <img
             :src="product.thumbnail"
             :alt="product.title"
             class="w-full h-48 object-cover"
           />
-          <div class="p-4">
+          <div class="p-4 flex-1 flex flex-col">
             <h3 class="text-lg font-semibold">{{ product.title }}</h3>
             <p class="text-gray-600 text-sm truncate">
               {{ product.description }}
             </p>
             <p class="text-pink-600 font-bold mt-2">Rp {{ product.price }}</p>
+            <button
+              @click="openTransaction(product)"
+              class="mt-auto bg-pink-600 text-white px-4 py-2 rounded-full hover:bg-pink-700 transition"
+            >
+              Beli
+            </button>
           </div>
         </div>
       </div>
@@ -140,6 +146,52 @@
         </p>
       </div>
     </section>
+
+    <!-- Modal Transaksi -->
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-96 shadow-lg relative">
+        <!-- Close Button -->
+        <button
+          @click="closeModal"
+          class="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        >
+          ✖
+        </button>
+
+        <h3 class="text-xl font-bold mb-4">Transaksi Produk</h3>
+        <img
+          :src="selectedProduct.thumbnail"
+          :alt="selectedProduct.title"
+          class="w-full h-40 object-cover rounded mb-4"
+        />
+        <h4 class="text-lg font-semibold">{{ selectedProduct.title }}</h4>
+        <p class="text-pink-600 font-bold mb-4">
+          Rp {{ selectedProduct.price }}
+        </p>
+
+        <!-- Input Quantity -->
+        <label class="block mb-2 text-sm font-medium text-gray-700"
+          >Jumlah</label
+        >
+        <input
+          v-model.number="quantity"
+          type="number"
+          min="1"
+          class="w-full px-3 py-2 border rounded mb-4"
+        />
+
+        <!-- Konfirmasi -->
+        <button
+          @click="confirmTransaction"
+          class="w-full bg-pink-600 text-white px-4 py-2 rounded-full hover:bg-pink-700 transition"
+        >
+          Konfirmasi
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -153,6 +205,11 @@ const search = ref("");
 
 const currentPage = ref(1);
 const itemsPerPage = ref(8); // jumlah produk per halaman
+
+// State modal transaksi
+const showModal = ref(false);
+const selectedProduct = ref({});
+const quantity = ref(1);
 
 onMounted(async () => {
   try {
@@ -195,5 +252,25 @@ function prevPage() {
 }
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++;
+}
+
+// Fungsi transaksi
+function openTransaction(product) {
+  selectedProduct.value = product;
+  quantity.value = 1;
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+}
+
+function confirmTransaction() {
+  alert(
+    `Transaksi berhasil!\nProduk: ${selectedProduct.value.title}\nJumlah: ${
+      quantity.value
+    }\nTotal: Rp ${selectedProduct.value.price * quantity.value}`
+  );
+  closeModal();
 }
 </script>
