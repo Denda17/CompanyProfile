@@ -68,7 +68,7 @@
         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
       >
         <div
-          v-for="product in filteredProducts"
+          v-for="product in paginatedProducts"
           :key="product.id"
           class="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition"
         >
@@ -85,6 +85,45 @@
             <p class="text-pink-600 font-bold mt-2">Rp {{ product.price }}</p>
           </div>
         </div>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="totalPages > 1"
+        class="flex items-center space-x-2 mt-8 flex-wrap justify-center"
+      >
+        <!-- Prev -->
+        <button
+          @click="prevPage"
+          :disabled="currentPage === 1"
+          class="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <!-- Page Numbers -->
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          @click="goToPage(page)"
+          :class="[
+            'px-4 py-2 rounded-full border transition',
+            currentPage === page
+              ? 'bg-pink-600 text-white border-pink-600'
+              : 'border-gray-300 hover:bg-gray-100',
+          ]"
+        >
+          {{ page }}
+        </button>
+
+        <!-- Next -->
+        <button
+          @click="nextPage"
+          :disabled="currentPage === totalPages"
+          class="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </section>
 
@@ -112,6 +151,9 @@ const loading = ref(true);
 const error = ref(null);
 const search = ref("");
 
+const currentPage = ref(1);
+const itemsPerPage = ref(8); // jumlah produk per halaman
+
 onMounted(async () => {
   try {
     const res = await fetch("https://dummyjson.com/products");
@@ -134,4 +176,24 @@ const filteredProducts = computed(() => {
       product.description.toLowerCase().includes(keyword)
   );
 });
+
+const totalPages = computed(() =>
+  Math.ceil(filteredProducts.value.length / itemsPerPage.value)
+);
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return filteredProducts.value.slice(start, end);
+});
+
+function goToPage(page) {
+  currentPage.value = page;
+}
+function prevPage() {
+  if (currentPage.value > 1) currentPage.value--;
+}
+function nextPage() {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+}
 </script>
